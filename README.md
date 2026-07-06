@@ -7,6 +7,10 @@ Start here:
 - **[ISA spec format](isa-spec-format.md)** — the declarative instruction-set
   format that the `isa` crate holds and the assembler consumes. The single
   source of truth for instruction encoding across the family.
+- **[Debug198x format](debug198x.md)** — the cross-CPU debug-info sidecar
+  (`.debug198x`, NDJSON) asm198x writes and the Emu198x importer reads: the
+  record vocabulary, the (section, offset) addressing model with base-map
+  rebasing, and the banked shapes. Draft v0.1 until first consumption.
 - **[6502 dialect](dialects/6502.md)** — the source syntax the 6502 assembler
   accepts today: addressing modes, directives, operators, and the gaps still to
   close on the way to ca65 compatibility.
