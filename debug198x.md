@@ -54,7 +54,15 @@ rendering concern for tools, never a wire concern.
 | `tool`, `tool_version` | the producing tool — informational, never load-bearing |
 | `cpu` | the target CPU (`"z80"`, `"6502"`, `"68000"`, `"cp1610"`, …) |
 | `dialect` | the source syntax (`"pasmo"`, `"acme"`, `"ca65"`, `"vasm"`, `"asl"`, …) |
-| `sources` | the source file(s) the image was assembled from |
+| `sources` | the source file(s) the image was assembled from, in producer file-id order |
+
+`sources` is **ordered**: `sources[0]` is the root input, and each included
+file appears exactly once, in the order the assembly first reached it — the
+producer's file-id order. A file included twice still gets one entry (its
+first inclusion). Every `line` record's `file` matches one of these entries
+verbatim, so a consumer can key files by either the string or its index.
+Binary assets pulled in by an `incbin`-style directive are data, not source —
+they never appear in `sources`.
 
 Branch on `format_version` for a breaking change; additive changes never bump
 it incompatibly.
@@ -134,7 +142,7 @@ record model loses nothing an SLD consumer needs.
 ```
 
 `length` units at `(section, offset)` were produced by line `line` of `file`.
-One record per source-bearing statement. Two rules:
+One record per source-bearing statement. Three rules:
 
 - **The padding rule:** bytes with no source — `org` gap fill, alignment
   padding (an Amiga `even`, a linker gap) — belong to **no** line record. A
@@ -142,6 +150,17 @@ One record per source-bearing statement. Two rules:
   truth.
 - Lines that emit nothing (`equ`, comments, blank lines) get no record; their
   text is in the source file the header names.
+- **The own-file rule:** `file` is the file the line counts within, spelled
+  exactly as its `sources` entry — a line inside an included file names *that*
+  file and its own 1-based line number, never the root input that included it.
+  The `z80-spectrum-multifile` and `6502-nes-multifile` fixtures pin this: the
+  included file's bytes carry `"file":"…multifile.inc"` records.
+
+A binary-inclusion directive (`incbin` and its dialect kin) produces **one**
+record covering the whole payload: `file` and `line` are the directive's own
+position, `length` the payload's size in address units. The pulled-in binary
+is data, not source, so nothing points into it and it never appears in
+`sources`.
 
 ## Address units
 
@@ -192,6 +211,13 @@ even a based section (a flat blob loaded somewhere unusual).
 
 ## Changelog
 
+- **0.1** (2026-07-07) — multi-file data semantics specified; **no shape
+  change**. `sources` is ordered by the producer's file table (`sources[0]` =
+  the root input, included files in first-inclusion order); a `line` record's
+  `file` names its own file verbatim from that list (the own-file rule); a
+  binary inclusion (`incbin` and kin) yields one record covering the whole
+  payload at the directive's position. Exercised by the new
+  `z80-spectrum-multifile` and `6502-nes-multifile` fixtures.
 - **0.1** (2026-07-06) — initial draft: `header`/`section`/`symbol`/`line`
   records; label/entry/const symbol kinds; bank and paged space shapes; the
   section/offset addressing model with base-map rebasing; the padding rule;
