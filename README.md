@@ -1,39 +1,33 @@
 # Asm198x documentation
 
-Documentation for the [Asm198x](https://github.com/asm198x) assembler family.
+Documentation for [Asm198x](https://github.com/asm198x), the 198x family's assembler/disassembler tooling and shared ISA-spec layer.
 
-Start here:
+## Start here
 
-- **[ISA spec format](isa-spec-format.md)** — the declarative instruction-set
-  format that the `isa` crate holds and the assembler consumes. The single
-  source of truth for instruction encoding across the family.
-- **[Debug198x format](debug198x.md)** — the cross-CPU debug-info sidecar
-  (`.debug198x`, NDJSON) asm198x writes and the Emu198x importer reads: the
-  record vocabulary, the (section, offset) addressing model with base-map
-  rebasing, and the banked shapes. Draft v0.1 until first consumption.
-- **[6502 dialect](dialects/6502.md)** — the source syntax the 6502 assembler
-  accepts today: addressing modes, directives, operators, and the gaps still to
-  close on the way to ca65 compatibility.
+- **[ISA spec format](isa-spec-format.md)** — the declarative instruction-set format held by the `isa` crate. This is the single source of truth for instruction encoding across Asm198x and downstream consumers.
+- **[Debug198x format](debug198x.md)** — the cross-CPU debug-info sidecar (`.debug198x`, NDJSON) emitted by asm198x and read by Emu198x importers.
+- **[6502 dialect](dialects/6502.md)** — source-syntax reference for the 6502 family dialects. Treat older gap notes in dialect docs as document-local until checked against the current `asm198x` test suite.
 
 ## How the pieces fit
 
-```
-datasheet / reference library          (hardware facts, with provenance)
-            │  authored into
-            ▼
-      isa spec  ──consumed by──▶  asm198x assembler  ──emits──▶  bytes
-        │                              ▲
-        │                              │ dialect (per-CPU parser)
-        └──validated against by──▶  Emu198x decoders
+```text
+datasheet / reference library
+          │ authored into
+          ▼
+      isa spec ──consumed by──▶ asm198x assembler ──emits──▶ bytes + listings + symbols + debug sidecars
+          │                         │
+          │                         └── dialect front-ends map source syntax to encoding forms
+          │
+          ├──consumed by──▶ isa-disasm disassemblers
+          └──validated with──▶ Emu198x decoder/oracle work where applicable
 ```
 
-The spec describes *encoding*; each CPU's *dialect* (how source syntax maps to
-addressing modes) lives in the assembler. Hardware facts themselves are not
-documented here — they live in the 198x primary reference library, and the spec
-is their machine-readable distillation for the narrow slice of "how an
-instruction encodes."
+The spec describes instruction **encoding**. Each CPU's dialect — how source syntax maps to addressing modes, directives, labels, and output formats — lives in the assembler. Hardware facts themselves are not canonical here; they live in the 198x primary reference library and syntheses.
+
+## Current status
+
+The docs repo is an index and external-format reference, not the exhaustive implementation ledger. For the active crate layout, CPU surface, and validation model, use [`../asm198x/README.md`](../asm198x/README.md) and [`../asm198x/CLAUDE.md`](../asm198x/CLAUDE.md).
 
 ## Conventions
 
-These docs are plain Markdown for now. A generated docs site can follow once
-there's enough to warrant it; nothing here assumes one.
+These docs are plain Markdown for now. A generated docs site can follow once there is enough stable user documentation to warrant it.
