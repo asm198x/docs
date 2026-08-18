@@ -1,9 +1,18 @@
 # The Debug198x format
 
-> **Status: draft v0.1 — subject to change until the first consumer ships.**
-> The format freezes when a real consumer (the Emu198x importer) has exercised
-> it end-to-end; until then, field names and record shapes may still move. The
-> freeze event and the rules for evolution afterwards are governed by the
+> **Status: frozen at v1 (2026-08-18).** Record shapes and field names are
+> stable. The format evolves **additively** from here — new record types and new
+> fields may be added at any time, and a conforming reader must tolerate both
+> (see *Two rules make the format durable* below). A **breaking** change now
+> requires a new decision, a `format_version` bump, and a migration path.
+>
+> `format_version` remains `"0.1"`, and that string denotes the frozen v1
+> specification. It was deliberately not bumped at the freeze: only a breaking
+> change moves it, and nothing about the wire format changed. Do not read
+> `"0.1"` as "still draft".
+>
+> The freeze event, the evidence it was gated on, and the rules for evolution
+> afterwards are governed by the
 > [format decision record](https://github.com/asm198x/asm198x/blob/main/decisions/debug198x-format.md).
 
 Debug198x is the 198x family's **cross-CPU debug-info format**: one sidecar
@@ -31,12 +40,16 @@ record carries a `t` field naming its type. Four types exist today:
 | `symbol` | one per symbol | name, kind, location or value |
 | `line` | one per source-bearing span | file, line, section, offset, length |
 
-Two rules make the format durable:
+Three rules make the format durable, and at v1 they are promises rather than
+intentions:
 
 - **A reader must skip records with an unknown `t`** instead of failing. New
   record types are added this way, without a version break.
 - **A reader must ignore unknown fields** inside a known record. New fields are
   added this way.
+- **A reader must carry a `space` shape it does not recognize** rather than
+  reject the file, and should give its caller a way to find out that it did —
+  see *The consumer model*. New address-space shapes are added this way.
 
 Numbers are **decimal JSON integers** throughout, u64-capable. Hexadecimal is a
 rendering concern for tools, never a wire concern.
@@ -258,6 +271,16 @@ even a based section (a flat blob loaded somewhere unusual).
 - Sidecars are deterministic for a given source and tool version.
 
 ## Changelog
+
+- **v1 frozen** (2026-08-18) — record shapes and field names are stable; the
+  format evolves additively from here, and a breaking change needs a new
+  decision, a `format_version` bump, and a migration path. **No shape changed at
+  the freeze**, and `format_version` deliberately stays `"0.1"`, now denoting the
+  frozen v1 specification. Gated on: the Emu198x importer consuming a real
+  sidecar end-to-end, the banked fixture's three validation legs (the last
+  cross-checked against a real 128K paging model), and a bounded review that ran
+  twice — producing `space` on `Section`, then the unknown-shape rule and the
+  withdrawal of the unexercised `bank` shape.
 
 - **0.1** (2026-08-18) — **unrecognized `space` shapes are carried, not fatal;
   the `bank` shape is withdrawn.** A reader that meets a `space` it does not know
