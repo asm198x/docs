@@ -135,15 +135,33 @@ address-kind `symbol` (the space that one address lives in); a symbol's own
 default for everything in it — including `line` records, which carry no
 qualifier of their own. Two shapes exist for machines that need more:
 
-- `{"bank": 126}` — a 65816-style bank byte, the high 8 bits of a 24-bit
-  address.
 - `{"slot": 3, "page": 1}` — a banked/paged location: hardware slot `slot`
   with memory page (bank) `page` paged into it. Two symbols sharing a CPU
-  address in different pages stay distinct.
+  address in different pages stay distinct. **`page` is the join key**: it says
+  which bank the code belongs to, while `slot` records where the producer
+  expected that bank to appear. A consumer building a base map from paging state
+  matches on `page` alone — matching the pair hides a bank the machine has put
+  somewhere else, and a page can legitimately be live in two slots at once (a
+  128K keeps bank 5 at `$4000` *and* can select it into `$C000`).
+
+One shape only, deliberately. A **reader must carry a `space` shape it does not
+recognize rather than reject it** — the record still resolves through its
+section, and the qualifier is treated as uninterpretable. This is the
+skip-unknown rule applied to `space`, and it is what keeps the set of shapes open
+after v1: without it, a reader meeting a future shape fails the whole file.
 
 The paged shape is exercised today by the hand-authored Spectrum 128 fixture
-(`spectrum128-banked.*`), on its sections and its symbols alike; emission paths
+(`spectrum128-banked.*`), on its sections and its symbols alike, and is
+cross-checked against a real 128K paging model in Emu198x; emission paths
 populate it when a machine needs it.
+
+A `{"bank": <n>}` shape for 65816-style bank bytes was specified in draft
+0.1 and **withdrawn before v1**, having never been emitted by a producer, pinned
+by a fixture, or read by a consumer — and being derivable anyway, since a 65816
+address resolves to its full 24-bit value and the bank byte is its top 8 bits. A
+file carrying one still loads: it is an unrecognized shape, and unrecognized
+shapes are carried. A real banked shape can be added when a 65816 consumer has an
+actual requirement for one.
 The fixture's companion table (`spectrum128-banked-sld.md`) shows every banked
 record projecting onto sjasmplus SLD long addresses by pure arithmetic — the
 record model loses nothing an SLD consumer needs.
@@ -232,6 +250,15 @@ even a based section (a flat blob loaded somewhere unusual).
 
 ## Changelog
 
+- **0.1** (2026-08-18) — **unrecognized `space` shapes are carried, not fatal;
+  the `bank` shape is withdrawn.** A reader that meets a `space` it does not know
+  keeps the record and treats the qualifier as uninterpretable, so a future shape
+  cannot fail an older reader's parse. Without this the set of shapes would close
+  permanently at v1, because `space` is matched structurally. `{"bank": <n>}`
+  is withdrawn unexercised — never emitted, fixtured, or read, and derivable from
+  a 24-bit address — leaving `{"slot", "page"}` as the one shape, which is
+  fixture-pinned and hardware-cross-checked. Files carrying a `bank` still load.
+  Also documents that **`page`, not the `(slot, page)` pair, is the join key**.
 - **0.1** (2026-08-18) — **`section` gains an optional `space`**, additively: a
   pageable section can now state the (slot, page) it belongs to, so a consumer
   turns a live paging state into a base map by lookup instead of inferring it
