@@ -235,6 +235,15 @@ That last clause is the design's hinge, and it is deliberate:
   holds one page — and the lookups will answer from whichever record comes
   first rather than reporting the contradiction.
 - **Non-CPU sections never pollute CPU lookups**, because nothing maps them.
+- **A section whose `space` the reader cannot interpret should be surfaced, not
+  silently left unmapped.** An unreadable shape matches no paging state, so it
+  never maps and its symbols never resolve — which from the outside looks exactly
+  like a bank that is paged out. Both are "no symbols here". Carrying an unknown
+  shape rather than rejecting the file is the right trade, but it converts a loud
+  failure into a quiet one, so a reader **should** give its caller some way to
+  ask "is anything here described in a way I cannot read?" — otherwise a producer
+  typo costs symbols and leaves nobody a thread to pull. Emu198x's importer does
+  this with an `unreadable_spaces()` query.
 
 A base-map entry always wins over a recorded `base`, so a consumer can rebase
 even a based section (a flat blob loaded somewhere unusual).
