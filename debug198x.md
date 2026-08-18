@@ -76,6 +76,7 @@ producer knows it — an absolute base address.
 ```json
 {"t":"section","id":4,"name":"CODE","base":32768}
 {"t":"section","id":0,"name":"code"}
+{"t":"section","id":0,"name":"bank1","space":{"slot":3,"page":1}}
 ```
 
 | field | meaning |
@@ -83,6 +84,7 @@ producer knows it — an absolute base address.
 | `id` | the integer other records reference |
 | `name` | the segment/hunk name (`"main"`, `"CODE"`, `"ZEROPAGE"`, `"code"`, `"bank1"`) |
 | `base` | absolute address of offset 0 — **absent when the section is relocatable or not CPU-addressable** |
+| `space` | optional [address-space qualifier](#space--the-address-space-qualifier) for the section as a whole — on a banked machine, the (slot, page) it lives in |
 
 Three base postures cover every producer:
 
@@ -96,6 +98,12 @@ Three base postures cover every producer:
   space) carry no base either, so they can never alias a CPU address in a
   lookup. A consumer that addresses another space (a PPU viewer) supplies its
   own base map for them.
+
+A **pageable** section is the relocatable posture with a known destination: no
+`base` (where it lands depends on what is paged in), but a `space` naming the
+(slot, page) it belongs to. That pairing is what lets a consumer turn a live
+paging state into a base map without inspecting a single symbol — see *The
+consumer model*.
 
 ## `symbol` — names
 
@@ -120,8 +128,12 @@ address-to-symbol lookups.
 
 Most records carry no `space` field: a flat CPU's addresses need no
 qualification, and **producers never fabricate one** (a Z80 file contains no
-bank data; a 65816 program placed in bank 0 carries plain addresses). Two
-shapes exist for machines that need more:
+bank data; a 65816 program placed in bank 0 carries plain addresses). It may
+appear on a `section` (the space that section as a whole lives in) and on an
+address-kind `symbol` (the space that one address lives in); a symbol's own
+`space` is the finer truth where it carries one, and its section's is the
+default for everything in it — including `line` records, which carry no
+qualifier of their own. Two shapes exist for machines that need more:
 
 - `{"bank": 126}` — a 65816-style bank byte, the high 8 bits of a 24-bit
   address.
@@ -130,7 +142,8 @@ shapes exist for machines that need more:
   address in different pages stay distinct.
 
 The paged shape is exercised today by the hand-authored Spectrum 128 fixture
-(`spectrum128-banked.*`); emission paths populate it when a machine needs it.
+(`spectrum128-banked.*`), on its sections and its symbols alike; emission paths
+populate it when a machine needs it.
 The fixture's companion table (`spectrum128-banked-sld.md`) shows every banked
 record projecting onto sjasmplus SLD long addresses by pure arithmetic — the
 record model loses nothing an SLD consumer needs.
@@ -195,6 +208,14 @@ That last clause is the design's hinge, and it is deliberate:
   swap the map to bank 3 and the same address names `music`. No map, no
   answer — which is correct, because without paging state the question is
   ambiguous.
+
+  Build that map from the sections' `space`: for each slot, take the sections
+  whose `space` names the page currently in it and map them to the slot's
+  address. A page the image has no code in contributes nothing, so the lookup
+  declines to answer instead of answering from another bank. Mapping two pages
+  of one slot at once describes a state the hardware cannot be in — one slot
+  holds one page — and the lookups will answer from whichever record comes
+  first rather than reporting the contradiction.
 - **Non-CPU sections never pollute CPU lookups**, because nothing maps them.
 
 A base-map entry always wins over a recorded `base`, so a consumer can rebase
@@ -211,6 +232,14 @@ even a based section (a flat blob loaded somewhere unusual).
 
 ## Changelog
 
+- **0.1** (2026-08-18) — **`section` gains an optional `space`**, additively: a
+  pageable section can now state the (slot, page) it belongs to, so a consumer
+  turns a live paging state into a base map by lookup instead of inferring it
+  from whichever symbol happens to sit in the section — and a section holding
+  only `line` records places at all. A record's own `space` stays the finer
+  truth; its section's is the default. Absent on every flat producer, so all
+  existing sidecars are byte-identical and older readers are unaffected. The
+  `spectrum128-banked` fixture carries section spaces.
 - **0.1** (2026-07-07) — multi-file data semantics specified; **no shape
   change**. `sources` is ordered by the producer's file table (`sources[0]` =
   the root input, included files in first-inclusion order); a `line` record's
