@@ -3,7 +3,7 @@
 > **Status: frozen at v1 (2026-08-18).** Record shapes and field names are
 > stable. The format evolves **additively** from here — new record types and new
 > fields may be added at any time, and a conforming reader must tolerate both
-> (see *Two rules make the format durable* below). A **breaking** change now
+> (see *Three rules make the format durable* below). A **breaking** change now
 > requires a new decision, a `format_version` bump, and a migration path.
 >
 > `format_version` remains `"0.1"`, and that string denotes the frozen v1
