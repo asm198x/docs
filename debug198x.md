@@ -118,6 +118,40 @@ A **pageable** section is the relocatable posture with a known destination: no
 paging state into a base map without inspecting a single symbol — see *The
 consumer model*.
 
+### Sections that contribute no bytes
+
+A section can describe address space that is **not in the image**. The asl-family
+dialects are where this shows up on the flat path: `asl` reserves without
+writing and `p2bin` starts the file at the lowest written address, so a leading
+`org` gap or reservation moves the load address instead of padding it.
+
+```asm
+buf:    ds 3        ; reserved — no bytes in the image
+start:  db 9        ; the image begins here, at $0003
+```
+
+```json
+{"t":"section","id":0,"name":"main","base":3}
+{"t":"section","id":1,"name":"reserved","base":0}
+{"t":"symbol","name":"buf","kind":"label","section":1,"offset":0}
+{"t":"symbol","name":"start","kind":"label","section":0,"offset":0}
+{"t":"line","file":"t.s","line":2,"section":0,"offset":0,"length":1}
+```
+
+`buf` is a real label at a real address, but it sits below where the image
+begins and offsets are unsigned, so it cannot be expressed against `main`. The
+`reserved` section is based where the source's addresses started and holds no
+bytes — a BSS region, expressed with the fields sections already have.
+
+Two things follow for a consumer:
+
+- **Do not assume section ids run in image order, or that every section has
+  bytes.** `main` keeps id 0 whether or not a `reserved` section exists, so a
+  sidecar without one is unchanged. Anything mapping sections to file offsets by
+  accumulating lengths must skip a section that contributes none.
+- **A `reserved` section carries symbols but no `line` records.** A line span
+  describes bytes that exist; these do not.
+
 ## `symbol` — names
 
 ```json
@@ -272,6 +306,12 @@ even a based section (a flat blob loaded somewhere unusual).
 
 ## Changelog
 
+- **Zero-byte sections documented** (2026-08-19) — a producer may emit a
+  section that contributes no bytes, to hold symbols in address space the image
+  does not cover. The flat asl-family path does this for a trimmed leading gap.
+  **No shape changed**: it uses `sections` and `base` as they already are, and a
+  sidecar without such a region is byte-identical to before. See *Sections that
+  contribute no bytes*.
 - **v1 frozen** (2026-08-18) — record shapes and field names are stable; the
   format evolves additively from here, and a breaking change needs a new
   decision, a `format_version` bump, and a migration path. **No shape changed at
