@@ -9,7 +9,18 @@ This page is the reference. `asm198x --help` is the same surface in one screen.
 ## Installing
 
 Each release attaches an installer and platform archives to its
-[GitHub Release](https://github.com/asm198x/asm198x/releases).
+[GitHub Release](https://github.com/asm198x/asm198x/releases), and publishes a
+Homebrew formula.
+
+```sh
+# Homebrew (macOS, Linux)
+brew install asm198x/tap/asm198x
+```
+
+Homebrew asks you to trust a third-party formula the first time. Approving
+`asm198x/tap/asm198x` trusts that one formula; `brew trust --tap asm198x/tap`
+would trust everything the tap ever publishes, which is the broader promise —
+prefer the formula.
 
 ```sh
 # macOS / Linux
@@ -43,6 +54,7 @@ asm198x prog.asm -o prog.bin           # assemble
 asm198x asm prog.asm -o prog.bin       # identical
 asm198x disasm prog.bin                # disassemble to stdout
 asm198x fmt prog.asm                   # reformat, to stdout
+asm198x --version                      # which build is this
 ```
 
 > Before v0.0.12 the operations were the `--disasm` and `--fmt` flags. Those are
@@ -81,6 +93,19 @@ idempotent, and formatted source reassembles to the same bytes.
 
 Writes to **stdout** unless `-o` is given; it never rewrites the input in place.
 To format a file over itself, write to a new path and move it.
+
+### `version` — report the build
+
+```
+asm198x --version        # also -V, or `asm198x version`
+```
+
+Prints `asm198x <version>`. The version is compiled in from the crate version,
+so it names the build you are actually holding rather than a string someone
+remembered to update.
+
+Added after v0.0.12. Earlier binaries answer none of the three spellings, so if
+`asm198x --version` reports an unknown flag, you are on v0.0.12 or older.
 
 ## Options
 
