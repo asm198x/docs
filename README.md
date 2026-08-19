@@ -6,6 +6,7 @@ Documentation for [Asm198x](https://github.com/asm198x), the 198x family's assem
 
 - **[ISA spec format](isa-spec-format.md)** — the declarative instruction-set format held by the `isa` crate. This is the single source of truth for instruction encoding across Asm198x and downstream consumers.
 - **[Debug198x format](debug198x.md)** — the cross-CPU debug-info sidecar (`.debug198x`, NDJSON) emitted by asm198x and read by Emu198x importers.
+- **[CLI reference](cli.md)** — installing `asm198x`, its subcommands, options, output containers, and the dialect roster.
 - **[6502 dialect](dialects/6502.md)** — source-syntax reference for the 6502 family dialects. Treat older gap notes in dialect docs as document-local until checked against the current `asm198x` test suite.
 
 ## How the pieces fit
