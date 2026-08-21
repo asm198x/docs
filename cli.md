@@ -1,7 +1,7 @@
 # The `asm198x` command line
 
 This page has moved into the assembler's own repository and is published at
-**<https://asm198x.github.io/docs/cli.html>**.
+**<https://asm198x.github.io/reference/cli/>**.
 
 It moved because it had drifted. Maintained here by hand, it fell behind the
 binary in two ways nobody caught: five working dialects were missing from it
