@@ -10,7 +10,7 @@ when they refuse instructions the 8048 accepts — so following this page would
 have picked the wrong one and produced a confusing failure on a working
 program.
 
-The reference now lives at [`docs/book/src/cli.md`](https://github.com/asm198x/asm198x/blob/main/docs/book/src/cli.md)
+The reference now lives at [`docs/book/src/reference/cli.md`](https://github.com/asm198x/asm198x/blob/main/docs/book/src/reference/cli.md)
 in `asm198x/asm198x`, and its dialect table is generated from the same list
 `--dialect` resolves against. CI fails if the two disagree, so the drift that
 prompted the move is now a build failure rather than a discovery months later.
