@@ -1,8 +1,10 @@
 # Asm198x docs
 
+> Read [`PRINCIPLES.md`](PRINCIPLES.md) first.
+
 Documentation repo for the Asm198x assembler family. Part of the `asm198x` org
-container; see [`../CLAUDE.md`](../CLAUDE.md) for the org layout and
-[`../../CLAUDE.md`](../../CLAUDE.md) for the 198x umbrella.
+container; see [`../AGENTS.md`](../AGENTS.md) for the org layout and
+[`../../AGENTS.md`](../../AGENTS.md) for the 198x umbrella.
 
 ## Scope
 
