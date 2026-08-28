@@ -1,6 +1,6 @@
 # Asm198x docs
 
-> Read [`PRINCIPLES.md`](PRINCIPLES.md) first.
+> Read [`PRINCIPLES.md`](PRINCIPLES.md) first. [`MANIFESTO.md`](MANIFESTO.md) is why the project exists.
 
 Documentation repo for the Asm198x assembler family. Part of the `asm198x` org
 container; see [`../AGENTS.md`](../AGENTS.md) for the org layout and
