@@ -27,7 +27,7 @@ The spec describes instruction **encoding**. Each CPU's dialect — how source s
 
 ## Current status
 
-The docs repo is an index and external-format reference, not the exhaustive implementation ledger. For the active crate layout, CPU surface, and validation model, use [`../asm198x/README.md`](../asm198x/README.md) and [`../asm198x/CLAUDE.md`](../asm198x/CLAUDE.md).
+The docs repo is an index and external-format reference, not the exhaustive implementation ledger. For the active crate layout, CPU surface, and validation model, use [`asm198x/README.md`](https://github.com/asm198x/asm198x/blob/main/README.md) and [`asm198x/AGENTS.md`](https://github.com/asm198x/asm198x/blob/main/AGENTS.md).
 
 ## Conventions
 
